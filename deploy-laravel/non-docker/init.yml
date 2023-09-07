@@ -1,0 +1,116 @@
+---
+- name: deploy laravel apps to vps
+  hosts: server
+  become: no
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: set environment 
+      ansible.builtin.shell: |
+        export ENV user = {{ DEPLOY_USER }}
+
+        export ENV releaseDir = {{ baseDir }} . '/releases';
+        export ENV currentDir = {{ baseDir }} . '/current';
+        export ENV release = date('YmdHis');
+        export ENV currentReleaseDir = {{ releaseDir }} . '/' . $release;
+
+    - name: initialised deployment path
+      ansible.builtin.shell: |
+        if [ ! -d {{ baseDir }}/current ]; then
+            cd {{ baseDir }}
+
+            git clone {{ repo }} --branch={{ branchOrTag }} --depth=1 -q {{ release }}
+            echo "Repository cloned \n"
+
+            mv {{ release }}/storage {{ baseDir }}/storage
+            ln -nfs {{ baseDir }}/storage {{ release }}/storage
+            ln -nfs {{ baseDir }}/storage/public {{ release }}/public/storage
+            echo "Storage directory set up \n"
+
+            cp {{ release }}/.env.example {{ baseDir }}/.env
+            ln -nfs {{ baseDir }}/.env {{ release }}/.env
+            echo "Environment file set up \n"
+
+            sudo chown -R {{ $user }}:www-data {{ baseDir }}/storage
+            sudo chmod -R ug+rwx {{ baseDir }}/storage
+
+            rm -rf {{ release }}
+            echo "Deployment path initialised. \n"
+        else
+            echo "Deployment path already initialised (current symlink exists)! \n"
+        fi
+
+    - name: pull latest repository
+      ansible.builtin.shell: |
+        git clone {{ repo }} --branch={{ branchOrTag }} --depth=1 -q {{ currentReleaseDir }}
+
+    - name: composer install
+      ansible.builtin.shell: |
+        echo "Running composer \n"
+        cd {{ currentReleaseDir }}
+        composer install --no-interaction --quiet --no-dev --prefer-dist --optimize-autoloader
+    
+    - name: update symlinks storage and env file
+      ansible.builtin.shell: |
+        echo "Updating symlinks \n"
+
+        # Remove the storage directory and replace with persistent data
+        echo "Linking storage directory \n"
+        rm -rf {{ currentReleaseDir }}/storage;
+        cd {{ currentReleaseDir }};
+        ln -nfs {{ baseDir }}/storage {{ currentReleaseDir }}/storage;
+        ln -nfs {{ baseDir }}/storage/app/public {{ currentReleaseDir }}/public/storage
+
+        # Remove the public uploads directory and replace with persistent data
+        #    echo "Linking uploads directory \n"
+        #    rm -rf {{ currentReleaseDir }}/public/uploads
+        #    cd {{ currentReleaseDir }}/public
+        #    ln -nfs {{ baseDir }}/uploads {{ currentReleaseDir }}/uploads;
+
+        # Import the environment config
+        echo "Linking .env file \n"
+        cd {{ currentReleaseDir }};
+        ln -nfs {{ baseDir }}/.env .env;
+
+        # Symlink the latest release to the current directory
+        echo "Linking current release \n"
+        ln -nfs {{ currentReleaseDir }} {{ currentDir }};
+    
+    - name: set permission in laravel directory
+      ansible.builtin.shell: |
+        # Set dir permissions
+        echo "Set permissions \n"
+
+        sudo chown -R {{ user }}:www-data {{ baseDir }}
+        sudo chmod -R ug+rwx {{ baseDir }}/storage
+        cd {{ baseDir }}
+        sudo chown -R {{ user }}:www-data current
+        sudo chmod -R ug+rwx current/storage current/bootstrap/cache
+        sudo chown -R {{ user }}:www-data {{ currentReleaseDir }}
+
+    - name: run migration
+      ansible.builtin.shell: |
+        php {{ currentReleaseDir }}/artisan migrate --force
+
+    - name: recache laravel
+      ansible.builtin.shell: |
+        php {{ currentDir }}/artisan clear-compiled
+        php {{ currentDir }}/artisan optimize
+
+    - name: reload services nginx, fpm and supervisord
+      ansible.builtin.shell: |
+        echo "Restarting service supervisor \n"
+        sudo supervisorctl restart all
+
+        echo "Restarting php \n"
+        sudo systemctl restart php{{ php_version }}-fpm
+        
+        echo "Restarting nginx \n"
+        sudo systemctl restart nginx
+
+    - name: clean old release
+      ansible.builtin.shell: |
+        echo "Cleaning old releases \n"
+        cd {{ releaseDir }}
+        ls -dt {{ releaseDir }}/* | tail -n +{{ max_releases + 1 }} | xargs -d "\n" rm -rf;

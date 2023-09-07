@@ -1,0 +1,9 @@
+---
+
+# Variables
+DEPLOY_USER: "ubuntu"
+baseDir: "~/www"
+repo: "https://github.com/jhonoryza/laravel-blog-markdown.git"
+branchOrTag: "master"
+php_version: "8.2"
+max_releases: 3
