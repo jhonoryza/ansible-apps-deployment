@@ -1,0 +1,18 @@
+---
+- name: Deploy and Run Docker Compose
+  hosts: server
+  become: no
+
+  tasks:
+    - name: pull laravel-markdown-blog latest branch
+      ansible.builtin.shell: |
+        cd /media/ubuntu/server_data/docker/laravel-projects/laravel-markdown-blog/src
+        git pull origin main
+    - name: build docker image
+      ansible.builtin.shell: |
+        cd /media/ubuntu/server_data/docker/laravel-projects/laravel-markdown-blog
+        bash build.sh laravel-markdown-blog:latest 8.2 n n
+    - name: run docker compose
+      ansible.builtin.shell: |
+        cd /media/ubuntu/server_data/docker/laravel-projects/laravel-markdown-blog
+        docker compose up -d
