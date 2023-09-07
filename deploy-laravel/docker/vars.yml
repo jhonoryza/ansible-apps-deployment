@@ -1,0 +1,14 @@
+---
+
+# Variables
+app_name: "laravel-markdown-blog"
+deployRepo: "https://github.com/jhonoryza/serversideup-laravel.git"
+
+baseDir: "/media/ubuntu/server_data/docker/laravel-projects/"
+repo: "https://github.com/jhonoryza/laravel-blog-markdown.git"
+branchOrTag: "main"
+
+image_tag: "laravel-markdown-blog:latest"
+enable_scheduler: "n"
+enable_worker: "n"
+php_version: "8.2"
