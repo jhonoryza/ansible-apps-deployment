@@ -6,16 +6,13 @@
     - vars.yml
 
   tasks:
-    - name: set environment 
-      ansible.builtin.shell: |
-        export ENV user = {{ DEPLOY_USER }}
-
-        export ENV releaseDir = {{ baseDir }} . '/releases';
-        export ENV currentDir = {{ baseDir }} . '/current';
-        export ENV release = date('YmdHis');
-        export ENV currentReleaseDir = {{ releaseDir }} . '/' . $release;
-
     - name: initialised deployment path
+      include_vars:
+        file: vars.yml
+      vars:
+        release: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+        currentReleaseDir: "{{ releaseDir }}/{{ release }}"
+
       ansible.builtin.shell: |
         if [ ! -d {{ baseDir }}/current ]; then
             cd {{ baseDir }}
@@ -32,7 +29,7 @@
             ln -nfs {{ baseDir }}/.env {{ release }}/.env
             echo "Environment file set up \n"
 
-            sudo chown -R {{ $user }}:www-data {{ baseDir }}/storage
+            sudo chown -R {{ user }}:www-data {{ baseDir }}/storage
             sudo chmod -R ug+rwx {{ baseDir }}/storage
 
             rm -rf {{ release }}

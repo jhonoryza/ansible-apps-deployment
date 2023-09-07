@@ -1,0 +1,42 @@
+---
+
+- name: initialize deployment path
+  ansible.builtin.shell: |
+    if [ ! -d {{ deployDir }} ]; then
+        cd {{ baseDir }}
+        git clone {{ deployRepo }} {{ app_name }}
+    else
+        echo "Deployment path already initialised! \n"
+    fi
+
+- name: initialize repo path
+  ansible.builtin.shell: |
+    if [ ! -d {{ srcDir }} ]; then
+        cd {{ deployDir }}
+        git clone {{ repo }} src
+    else
+        echo "repo path already initialised! \n"
+    fi
+
+- name: initialize laravel env
+  ansible.builtin.shell: |
+    if [ ! -f {{ deployDir }}/env ]; then
+        cp {{ srcDir }}/.env.example env
+    else
+        echo "laravel env file already initialised! \n"
+    fi
+
+- name: pull latest branch
+  ansible.builtin.shell: |
+    cd {{ srcDir }}
+    git pull origin {{ branchOrTag }}
+
+- name: build docker image
+  ansible.builtin.shell: |
+    cd {{ deployDir }}
+    bash build.sh {{ image_tag }} {{ php_version }} {{ enable_scheduler }} {{ enable_worker }}
+
+- name: run docker compose
+  ansible.builtin.shell: |
+    cd {{ deployDir }}
+    docker compose up -d

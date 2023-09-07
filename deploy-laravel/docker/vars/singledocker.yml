@@ -8,6 +8,9 @@ baseDir: "/media/ubuntu/server_data/docker/laravel-projects/"
 repo: "https://github.com/jhonoryza/laravel-blog-markdown.git"
 branchOrTag: "main"
 
+deployDir: "{{ baseDir }}/{{ app_name }}"
+srcDir: "{{ baseDir }}/{{ app_name }}/src"
+
 image_tag: "laravel-markdown-blog:latest"
 enable_scheduler: "n"
 enable_worker: "n"

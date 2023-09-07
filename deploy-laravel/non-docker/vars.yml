@@ -7,3 +7,8 @@ repo: "https://github.com/jhonoryza/laravel-blog-markdown.git"
 branchOrTag: "master"
 php_version: "8.2"
 max_releases: 3
+
+user: "{{ DEPLOY_USER }}"
+
+releaseDir: "{{ baseDir }}/releases"
+currentDir: "{{ baseDir }}/current"

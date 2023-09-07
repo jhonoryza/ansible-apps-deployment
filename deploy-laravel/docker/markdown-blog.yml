@@ -1,53 +1,10 @@
 ---
+
 - name: Deploy and Run Docker Compose
   hosts: server
   become: no
   vars_files:
-  - vars.yml
+    - vars/singledocker.yml
 
-  tasks:
-    - name: set environment
-      ansible.builtin.shell: |
-        export ENV deployDir = {{ baseDir }}/{{ app_name }}
-        export ENV srcDir = {{ deployDir }}/src
-
-    - name: initialize deployment path
-      ansible.builtin.shell: |
-        if [ ! -d {{ deployDir }} ]; then
-            cd {{ baseDir }}
-            git clone {{ deployRepo }} {{ app_name }}
-        else
-            echo "Deployment path already initialised! \n"
-        fi
-
-    - name: initialize repo path
-      ansible.builtin.shell: |
-        if [ ! -d {{ srcDir }} ]; then
-            cd {{ deployDir }}
-            git clone {{ repo }} src
-        else
-            echo "repo path already initialised! \n"
-        fi
-
-    - name: initialize laravel env
-      ansible.builtin.shell: |
-        if [ ! -f {{ deployDir/env }} ]; then
-            cp {{ srcDir }}/.env.example env
-        else
-            echo "laravel env file already initialised! \n"
-        fi
-
-    - name: pull latest branch
-      ansible.builtin.shell: |
-        cd {{ srcPath }}
-        git pull origin {{ branchOrTag }}
-
-    - name: build docker image
-      ansible.builtin.shell: |
-        cd {{ deployPath }}
-        bash build.sh {{ image_tag }} {{ php_version }} {{ enable_scheduler }} {{ enable_worker }}
-
-    - name: run docker compose
-      ansible.builtin.shell: |
-        cd {{ deployPath }}
-        docker compose up -d
+  roles:
+    - singledocker
