@@ -4,7 +4,7 @@
   hosts: server
   become: no
   vars_files:
-    - vars/markdown-blog.yml
+    - vars/filament-blog.yml
 
   roles:
     - singledocker
