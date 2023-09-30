@@ -40,3 +40,7 @@
   ansible.builtin.shell: |
     cd {{ deployDir }}
     docker compose up -d
+
+- name: clean unused docker image
+  ansible.builtin.shell: |
+    docker image prune -f
