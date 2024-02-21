@@ -4,7 +4,7 @@
   hosts: server
   become: no
   vars_files:
-    - vars/filament-blog.yml
+    - vars/filament-blog-var.yml
 
   roles:
-    - singledocker
+    - filament

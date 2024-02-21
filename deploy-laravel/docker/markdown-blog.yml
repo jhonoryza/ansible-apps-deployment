@@ -4,7 +4,7 @@
   hosts: server
   become: no
   vars_files:
-    - vars/markdown-blog.yml
+    - vars/markdown-blog-var.yml
 
   roles:
     - singledocker

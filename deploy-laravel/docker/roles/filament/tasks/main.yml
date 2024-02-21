@@ -41,10 +41,17 @@
     cd {{ deployDir }}
     docker compose up -d
 
+- name: run migrations
+  ansible.builtin.shell: |
+    cd {{ deployDir }}
+    docker exec -it -u webuser {{ app_name}} php artisan migrate --force
+
 - name: optimize laravel
   ansible.builtin.shell: |
     cd {{ deployDir }}
     docker exec -it -u webuser {{ app_name}} php artisan optimize
+    docker exec -it -u webuser {{ app_name}} php artisan icons:cache
+    docker exec -it -u webuser {{ app_name}} php artisan filament:cache-components
 
 - name: clean unused docker image
   ansible.builtin.shell: |

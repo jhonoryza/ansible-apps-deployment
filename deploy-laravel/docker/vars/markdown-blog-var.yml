@@ -1,17 +1,17 @@
 ---
 
 # Variables
-app_name: "laravel-filament-blog"
+app_name: "laravel-markdown-blog"
 deployRepo: "https://github.com/jhonoryza/serversideup-laravel.git"
 
-baseDir: "/media/ubuntu/server_data/docker/laravel-projects/"
-repo: "https://github.com/jhonoryza/laravel-filament-blog.git"
+baseDir: "/media/ubuntu/server_data1/docker/laravel-projects/"
+repo: "https://github.com/jhonoryza/laravel-blog-markdown.git"
 branchOrTag: "main"
 
 deployDir: "{{ baseDir }}/{{ app_name }}"
 srcDir: "{{ baseDir }}/{{ app_name }}/src"
 
-image_tag: "laravel-filament-blog:latest"
+image_tag: "laravel-markdown-blog:latest"
 enable_scheduler: "n"
 enable_worker: "n"
 php_version: "8.2"
