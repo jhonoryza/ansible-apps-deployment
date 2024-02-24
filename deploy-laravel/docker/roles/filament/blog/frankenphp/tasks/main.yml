@@ -1,0 +1,50 @@
+---
+
+- name: initialize deployment path
+  ansible.builtin.shell: |
+    if [ ! -d {{ deployDir }} ]; then
+        cd {{ baseDir }}
+        mkdir -p {{ app_name }}/src
+    else
+        echo "Deployment path already initialised! \n"
+    fi
+
+- name: initialize repo path
+  ansible.builtin.shell: |
+    if [ ! -d {{ srcDir }} ]; then
+        cd {{ deployDir }}
+        git clone {{ repo }} src
+    else
+        echo "repo path already initialised! \n"
+    fi
+
+- name: pull latest branch
+  ansible.builtin.shell: |
+    cd {{ srcDir }}
+    git pull origin {{ branchOrTag }}
+
+- name: build docker image
+  ansible.builtin.shell: |
+    cd {{ srcDir }}
+    docker compose -f production.docker-compose.yaml build
+
+- name: run docker compose
+  ansible.builtin.shell: |
+    cd {{ srcDir }}
+    docker compose -f production.docker-compose.yaml up -d
+
+- name: run migrations
+  ansible.builtin.shell: |
+    cd {{ srcDir }}
+    docker exec src-frankenphp-filament-blog-1 php artisan migrate --force
+
+- name: optimize laravel
+  ansible.builtin.shell: |
+    cd {{ srcDir }}
+    docker exec src-frankenphp-filament-blog-1 php artisan optimize
+    docker exec src-frankenphp-filament-blog-1 php artisan icons:cache
+    docker exec src-frankenphp-filament-blog-1 php artisan filament:cache-components
+
+- name: clean unused docker image
+  ansible.builtin.shell: |
+    docker image prune -f

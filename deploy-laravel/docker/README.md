@@ -21,6 +21,12 @@ brew install ansible
 ansible-playbook -i hosts filament-blog.yml
 ```
 
+or using frankenphp
+
+```bash
+ansible-playbook -i hosts filament-blog-frankenphp.yml
+```
+
 ### deploy markdown blog
 
 ```bash

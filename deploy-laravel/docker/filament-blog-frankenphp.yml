@@ -4,7 +4,7 @@
   hosts: server
   become: no
   vars_files:
-    - vars/filament-blog-var.yml
+    - vars/filament-blog-frankenphp-var.yml
 
   roles:
-    - filament/blog/fpm
+    - filament/blog/frankenphp
